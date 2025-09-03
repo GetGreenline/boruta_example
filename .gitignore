@@ -32,3 +32,5 @@ boruta_example-*.tar
 npm-debug.log
 /assets/node_modules/
 
+.idea
+tmp

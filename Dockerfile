@@ -1,26 +1,28 @@
-FROM elixir:1.13.3 AS builder
+FROM elixir:1.14
 
-ENV MIX_ENV=prod
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update \
+ && apt-get install -y apt-utils \
+ && apt-get install -y build-essential \
+ && apt-get install -y inotify-tools \
+ && apt-get install -y postgresql-client
+
+RUN apt-get install -y libcurl4-openssl-dev libssl-dev libevent-dev
+
+RUN mkdir /boruta_example
+WORKDIR /boruta_example
+
+COPY . /boruta_example
 
 RUN mix local.hex --force
 RUN mix local.rebar --force
 
-WORKDIR /app
-COPY . .
+#RUN mix archive.install --force hex phx_new 1.7.2 -> doesn't work https://elixirforum.com/t/creating-a-new-phoenix-project-on-windows-fails-on-extracting-pento-assets-vendor-heroicons-optimized/68143
+#RUN mix archive.install --force hex phx_new
+#RUN mix do deps.get, deps.compile, compile
+
 RUN mix do clean, deps.get
 RUN mix compile
 
-WORKDIR /app
-RUN mix assets.deploy
-RUN mix release --force --overwrite
-
-FROM elixir:1.13.3
-
-RUN apt-get install -y libcurl4-openssl-dev libssl-dev libevent-dev
-
-WORKDIR /app
-
-COPY --from=builder /app/_build/prod/rel/boruta_example ./
-
-EXPOSE 4000
-CMD ["/bin/sh", "-c", "/app/bin/boruta_example start"]
+CMD ["/boruta_example/entrypoint.sh"]

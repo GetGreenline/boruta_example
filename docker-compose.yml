@@ -1,0 +1,27 @@
+services:
+  web:
+    build:
+      context: .
+    env_file: .env
+    stdin_open: true
+    tty: true
+    volumes:
+      - ".:/boruta_example"
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+
+  db:
+    image: postgis/postgis:15-3.4
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      # Set a path where Postgres should store the data
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./tmp/postgres:/var/lib/postgresql/data
+      - ./db_dumps:/db_dumps
+      - ./init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+    ports:
+      - "5432:5432"
