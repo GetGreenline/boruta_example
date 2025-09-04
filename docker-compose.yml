@@ -12,6 +12,18 @@ services:
     depends_on:
       - db
 
+  flask:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    env_file: .env
+    stdin_open: true
+    tty: true
+    volumes:
+      - "./sample_client:/app"
+    ports:
+      - "5000:5000" # For Python web server
+
   db:
     image: postgis/postgis:15-3.4
     environment:

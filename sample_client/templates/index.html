@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OAuth Test - Connect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            background: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 600px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 4px;
+            font-weight: bold;
+            text-align: left;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>ExternalLoyaltyApp</h1>
+    <h2>Connect to Blaze</h2>
+
+    <div id ="myForm" style="display:none;">
+    <form id="oauthForm">
+        <label for="authEndpoint">Authorization Endpoint</label>
+        <input type="text" id="authEndpoint" value="http://localhost:4000/oauth/authorize">
+
+        <label for="clientId">Client ID</label>
+        <input type="text" id="clientId" value="a11249a8-221e-4f5a-a9e3-89dd688fdcd2">
+
+        <label for="redirectUri">Redirect URI</label>
+        <input type="text" id="redirectUri" value="http://localhost:5000/callback">
+
+        <label for="responseType">Response Type</label>
+        <input type="text" id="responseType" value="code">
+
+        <label for="scope">Scope</label>
+        <input type="text" id="scope" value="">
+
+        <label for="state">State</label>
+        <input type="text" id="state" placeholder="leave empty to auto-generate">
+    </form>
+    </div>
+    <button onclick="toggleContainer()">Show details</button>
+
+    <button id="connectBtn">Connect</button>
+</div>
+
+<script>
+  function toggleContainer() {
+    const c = document.getElementById("myForm");
+    c.style.display = (c.style.display === "none") ? "block" : "none";
+  }
+
+  document.getElementById('state').value = Math.random().toString(36).substring(2);
+
+  document.getElementById('connectBtn').addEventListener('click', () => {
+    const authorizationEndpoint = document.getElementById('authEndpoint').value;
+    const clientId = document.getElementById('clientId').value;
+    const redirectUri = document.getElementById('redirectUri').value;
+    const responseType = document.getElementById('responseType').value;
+    const scope = document.getElementById('scope').value;
+    let state = document.getElementById('state').value;
+
+    if (!state) {
+      state = Math.random().toString(36).substring(2);
+    }
+
+    const authUrl = `${authorizationEndpoint}?response_type=${encodeURIComponent(responseType)}&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${encodeURIComponent(state)}`;
+
+    window.location.href = authUrl;
+  });
+</script>
+</body>
+</html>
