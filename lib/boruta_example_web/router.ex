@@ -87,7 +87,7 @@ defmodule BorutaExampleWeb.Router do
   scope "/api", BorutaExampleWeb do
     pipe_through :protected_api
 
-    get "/users/:id", ApiUsersController, :get_user
+    get "/users/me", ApiUsersController, :get_me
   end
 
   scope "/", BorutaExampleWeb do

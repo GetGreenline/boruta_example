@@ -114,9 +114,8 @@ def get_user():
 
     # For convenience, keep the most common values in variables
     token = data.get("token")
-    user_id = data.get("user_id")
 
-    get_user_endpoint = f'{os.getenv("GET_USER_ENDPOINT")}/{user_id}'
+    get_user_endpoint = os.getenv("GET_USER_ENDPOINT")
 
     if not get_user_endpoint:
         return jsonify({"error": "missing_config", "message": "Set TOKEN_ENDPOINT env var"}), 500

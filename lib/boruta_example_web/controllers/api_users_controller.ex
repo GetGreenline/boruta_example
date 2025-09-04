@@ -3,7 +3,7 @@ defmodule BorutaExampleWeb.ApiUsersController do
 
   alias BorutaExample.Accounts
 
-  def get_user(conn, _params) do
+  def get_me(conn, _params) do
     user = conn.assigns.current_user
     IO.inspect(user, label: "User")
     if user do
