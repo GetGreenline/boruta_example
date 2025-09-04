@@ -8,6 +8,7 @@ defmodule BorutaExample.Accounts.User do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
     field :last_login_at, :utc_datetime_usec
+    field :birth_date, :date
 
     timestamps()
   end
@@ -147,7 +148,7 @@ defmodule BorutaExample.Accounts.User do
     def encode(struct, opts) do
       struct
       |> Map.from_struct()
-      |> Map.drop([:__meta__, :password]) # drop sensitive/internal fields if needed
+      |> Map.drop([:__meta__, :password, :hashed_password, :confirmed_at]) # drop sensitive/internal fields if needed
       |> Jason.Encode.map(opts)
     end
   end

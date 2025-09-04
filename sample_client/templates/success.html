@@ -73,11 +73,33 @@
     <h3>Success!</h3>
     <pre><code id="jsonResponse"></code></pre>
 
+    <button id="connectBtn">Get birthdate!</button>
+
+    <pre><code id="getUserResponse"></code></pre>
 </div>
 <script>
   const jsonResponse = {{ json_response | tojson }}
   document.getElementById('jsonResponse').innerText =
     JSON.stringify(jsonResponse, null, 2)
+
+  document.getElementById('connectBtn').addEventListener('click', () => {
+    fetch('http://localhost:5000/get_user', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ token: jsonResponse.access_token, user_id: 1 })
+    })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('getUserResponse').innerText =
+          data.birth_date
+      })
+      .catch(error => {
+        document.getElementById('getUserResponse').innerText =
+          'Error: ' + error
+      });
+  });
 </script>
 </body>
 </html>

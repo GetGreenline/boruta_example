@@ -10,6 +10,7 @@ logger = logging.getLogger('sample_client')
 
 app = Flask(__name__)
 
+
 # --- Simple home route: render your own page ---
 # Put your HTML at: templates/index.html
 @app.route("/", methods=["GET"])
@@ -99,7 +100,37 @@ def exchange():
         #     "headers": dict(resp.headers),
         #     "body": safe_json(resp)
         # }), resp.status_code
+        logger.info(safe_json(resp))
         return render_template("success.html", json_response=safe_json(resp))
+    except requests.RequestException as e:
+        return jsonify({"error": "request_exception", "message": str(e)}), 502
+
+
+@app.route("/get_user", methods=["POST"])
+def get_user():
+    # Accept parameters from either mode
+    data = request.get_json()
+    print(data)
+
+    # For convenience, keep the most common values in variables
+    token = data.get("token")
+    user_id = data.get("user_id")
+
+    get_user_endpoint = f'{os.getenv("GET_USER_ENDPOINT")}/{user_id}'
+
+    if not get_user_endpoint:
+        return jsonify({"error": "missing_config", "message": "Set TOKEN_ENDPOINT env var"}), 500
+
+    logger.info(f"Making request to {get_user_endpoint} with token {token}")
+
+    try:
+        resp = requests.get(
+            get_user_endpoint,
+            timeout=15,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        logger.info(safe_json(resp))
+        return jsonify({"birth_date": safe_json(resp)['user']['birth_date']}), 200
     except requests.RequestException as e:
         return jsonify({"error": "request_exception", "message": str(e)}), 502
 
