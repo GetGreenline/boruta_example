@@ -4,6 +4,8 @@ defmodule BorutaExampleWeb.UserAuth do
 
   alias BorutaExample.Accounts
   alias BorutaExampleWeb.Router.Helpers, as: Routes
+  alias Boruta.Oauth.Authorization
+  alias BorutaExampleWeb.OauthView
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
@@ -150,4 +152,21 @@ defmodule BorutaExampleWeb.UserAuth do
   defp maybe_store_return_to(conn), do: conn
 
   defp signed_in_path(_conn), do: "/"
+
+  def api_require_authenticated(conn, _opts) do
+    with [authorization_header] <- get_req_header(conn, "authorization"),
+         [_authorization_header, bearer] <- Regex.run(~r/[B|b]earer (.+)/, authorization_header),
+         {:ok, token} <- Authorization.AccessToken.authorize(value: bearer) do
+      IO.inspect(token.sub, label: "token.sub")
+      conn
+      |> assign(:current_token, token)
+      |> assign(:current_user, Accounts.get_user!(token.sub))
+    else
+      _ ->
+        conn
+        |> put_status(:unauthorized)
+        |> put_view(OauthView)
+        |> render("error.json", error: 401, error_description: "Unauthorized")
+    end
+  end
 end

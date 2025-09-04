@@ -142,4 +142,14 @@ defmodule BorutaExample.Accounts.User do
       add_error(changeset, :current_password, "is not valid")
     end
   end
+
+  defimpl Jason.Encoder, for: BorutaExample.Accounts.User do
+    def encode(struct, opts) do
+      struct
+      |> Map.from_struct()
+      |> Map.drop([:__meta__, :password]) # drop sensitive/internal fields if needed
+      |> Jason.Encode.map(opts)
+    end
+  end
 end
+

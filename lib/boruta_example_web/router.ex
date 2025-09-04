@@ -17,6 +17,11 @@ defmodule BorutaExampleWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :protected_api do
+    plug(:accepts, ["json"])
+    plug(:api_require_authenticated)
+  end
+
   scope "/", BorutaExampleWeb do
     pipe_through :browser
 
@@ -77,6 +82,12 @@ defmodule BorutaExampleWeb.Router do
     get "/users/settings", UserSettingsController, :edit
     put "/users/settings", UserSettingsController, :update
     get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
+  end
+
+  scope "/api", BorutaExampleWeb do
+    pipe_through :protected_api
+
+    get "/users/:id", ApiUsersController, :get_user
   end
 
   scope "/", BorutaExampleWeb do
