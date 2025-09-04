@@ -2,6 +2,11 @@
 from flask import Flask, request, render_template, jsonify, redirect, url_for
 import os
 import requests
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger('sample_client')
 
 app = Flask(__name__)
 
@@ -34,64 +39,68 @@ def callback():
         "received_params": params,
         "notes": "POST indicates response_mode=form_post on the AS; GET is the default query mode."
     }
+
     # Optionally, redirect to /exchange if a code is present and AUTO_EXCHANGE=true
-    if os.getenv("AUTO_EXCHANGE", "false").lower() == "true" and code:
+    if os.getenv("AUTO_EXCHANGE", "true").lower() == "true" and code:
+        logger.info("Auto-exchanging code for token...")
         return redirect(url_for("exchange", code=code, state=state))
-
-
-
 
     return jsonify(payload), 200
 
 
-# # --- Optional token exchange endpoint (for quick local testing) ---
-# # Supply config via environment variables:
-# #   TOKEN_ENDPOINT  (required to exchange)
-# #   CLIENT_ID
-# #   CLIENT_SECRET   (omit or leave blank for public clients/PKCE)
-# #   REDIRECT_URI
-# #   CODE_VERIFIER   (if you used PKCE)
-# @app.route("/exchange", methods=["GET", "POST"])
-# def exchange():
-#     # Allow providing 'code' via GET (from redirect) or POST body (JSON/form)
-#     code = request.values.get("code") or (request.json or {}).get("code") if request.is_json else None
-#     if not code:
-#         return jsonify({"error": "missing_code", "message": "Provide ?code=... or POST code"}), 400
-#
-#     token_endpoint = os.getenv("TOKEN_ENDPOINT")
-#     client_id = os.getenv("CLIENT_ID")
-#     client_secret = os.getenv("CLIENT_SECRET")
-#     redirect_uri = os.getenv("REDIRECT_URI")
-#     code_verifier = os.getenv("CODE_VERIFIER")  # required if you used PKCE
-#
-#     if not token_endpoint:
-#         return jsonify({"error": "missing_config", "message": "Set TOKEN_ENDPOINT env var"}), 500
-#
-#     data = {
-#         "grant_type": "authorization_code",
-#         "code": code,
-#     }
-#     if redirect_uri:
-#         data["redirect_uri"] = redirect_uri
-#     if client_id:
-#         data["client_id"] = client_id
-#     # Include secret only if you have one (confidential clients)
-#     if client_secret:
-#         data["client_secret"] = client_secret
-#     # Include PKCE code_verifier when applicable
-#     if code_verifier:
-#         data["code_verifier"] = code_verifier
-#
-#     try:
-#         resp = requests.post(token_endpoint, data=data, timeout=15)
-#         return jsonify({
-#             "request": {"url": token_endpoint, "data": data},
-#             "status_code": resp.status_code,
-#             "headers": dict(resp.headers),
-#             "body": safe_json(resp)
-#         }), resp.status_code
-#     except requests.RequestException as e:
-#         return jsonify({"error": "request_exception", "message": str(e)}), 502
+# --- Optional token exchange endpoint (for quick local testing) ---
+# Supply config via environment variables:
+#   TOKEN_ENDPOINT  (required to exchange)
+#   CLIENT_ID
+#   CLIENT_SECRET   (omit or leave blank for public clients/PKCE)
+#   REDIRECT_URI
+#   CODE_VERIFIER   (if you used PKCE)
+@app.route("/exchange", methods=["GET", "POST"])
+def exchange():
+    # Allow providing 'code' via GET (from redirect) or POST body (JSON/form)
+    if request.method == "POST":
+        params = request.form.to_dict(flat=True)
+    else:
+        params = request.args.to_dict(flat=True)
+    code = params.get("code")
+
+    if not code:
+        return jsonify({"error": "missing_code", "message": "Provide ?code=... or POST code"}), 400
+
+    token_endpoint = os.getenv("TOKEN_ENDPOINT")
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("CLIENT_SECRET")
+    redirect_uri = os.getenv("REDIRECT_URI")
+    code_verifier = os.getenv("CODE_VERIFIER")  # required if you used PKCE
+
+    if not token_endpoint:
+        return jsonify({"error": "missing_config", "message": "Set TOKEN_ENDPOINT env var"}), 500
+
+    data = {
+        "grant_type": "authorization_code",
+        "code": code,
+    }
+    if redirect_uri:
+        data["redirect_uri"] = redirect_uri
+    if client_id:
+        data["client_id"] = client_id
+    # Include secret only if you have one (confidential clients)
+    if client_secret:
+        data["client_secret"] = client_secret
+    # Include PKCE code_verifier when applicable
+    if code_verifier:
+        data["code_verifier"] = code_verifier
+
+    try:
+        resp = requests.post(token_endpoint, data=data, timeout=15)
+        return jsonify({
+            "request": {"url": token_endpoint, "data": data},
+            "status_code": resp.status_code,
+            "headers": dict(resp.headers),
+            "body": safe_json(resp)
+        }), resp.status_code
+    except requests.RequestException as e:
+        return jsonify({"error": "request_exception", "message": str(e)}), 502
 
 
 def safe_json(response):
