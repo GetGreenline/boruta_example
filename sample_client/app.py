@@ -93,12 +93,13 @@ def exchange():
 
     try:
         resp = requests.post(token_endpoint, data=data, timeout=15)
-        return jsonify({
-            "request": {"url": token_endpoint, "data": data},
-            "status_code": resp.status_code,
-            "headers": dict(resp.headers),
-            "body": safe_json(resp)
-        }), resp.status_code
+        # return jsonify({
+        #     "request": {"url": token_endpoint, "data": data},
+        #     "status_code": resp.status_code,
+        #     "headers": dict(resp.headers),
+        #     "body": safe_json(resp)
+        # }), resp.status_code
+        return render_template("success.html", json_response=safe_json(resp))
     except requests.RequestException as e:
         return jsonify({"error": "request_exception", "message": str(e)}), 502
 
